@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=8000
+      - ELASTIC_HOST=elasticsearch
+      - ELASTIC_NODE=http://elasticsearch:9200
+    links:
+        - elasticsearch
+    networks: 
+      - leo-user-app
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    restart: always
+    ports:
+      - 9300:9300
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=myPassword123
+      - node.name=leo-es01
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "xpack.security.enabled=false"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    logging:
+      driver: none
+    networks: 
+      - leo-user-app
+      
+volumes:
+  esdata:
+    driver: local
+
+networks:
+  leo-user-app:
